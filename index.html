@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yann Ermes K. | Développeur Flutter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-purple: #b400ff;
+            --dark-bg: #0f0f15;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--dark-bg);
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
+        }
+        
+        .neon-border {
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 12px rgba(0, 242, 255, 0.4);
+        }
+        
+        .neon-card {
+            background: rgba(15, 15, 21, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 0, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .neon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(180, 0, 255, 0.2);
+            border-color: var(--neon-purple);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .avatar-glow {
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.5);
+            animation: pulse 4s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); }
+            100% { box-shadow: 0 0 40px rgba(180, 0, 255, 0.6); }
+        }
+        
+        .skill-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            border-radius: 3px;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: var(--neon-blue);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        /* Animation des éléments au scroll */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Effet néon pour le formulaire */
+        .neon-input {
+            background: rgba(15, 15, 21, 0.5);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .neon-input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+        
+        /* 3D Container */
+        .three-d-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        /* Floating 3D Phone */
+        .floating-phone {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            pointer-events: none;
+        }
+        
+        /* 3D Cube Animation */
+        .cube-container {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            perspective: 1000px;
+        }
+        
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotateCube 20s infinite linear;
+        }
+        
+        @keyframes rotateCube {
+            from { transform: rotateX(0deg) rotateY(0deg); }
+            to { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        
+        .face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(0, 242, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            background: rgba(15, 15, 21, 0.7);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+        }
+        
+        .front  { transform: rotateY(0deg) translateZ(100px); }
+        .back   { transform: rotateY(180deg) translateZ(100px); }
+        .right  { transform: rotateY(90deg) translateZ(100px); }
+        .left   { transform: rotateY(-90deg) translateZ(100px); }
+        .top    { transform: rotateX(90deg) translateZ(100px); }
+        .bottom { transform: rotateX(-90deg) translateZ(100px); }
+        
+        /* 3D Floating Icons */
+        .floating-icon {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(180, 0, 255, 0.1);
+            border: 1px solid rgba(180, 0, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--neon-purple);
+            animation: float 6s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(180, 0, 255, 0.2);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- 3D Background Elements -->
+    <div class="three-d-container" id="threeDContainer"></div>
+    
+    <!-- Floating 3D Phone -->
+    <div class="floating-phone" id="floatingPhone"></div>
+    
+    <!-- Floating Icons -->
+    <div class="floating-icon" style="top: 20%; left: 10%; animation-delay: 0s;">
+        <i class="fab fa-flutter"></i>
+    </div>
+    <div class="floating-icon" style="top: 70%; left: 15%; animation-delay: 1s;">
+        <i class="fas fa-mobile-alt"></i>
+    </div>
+    <div class="floating-icon" style="top: 30%; left: 85%; animation-delay: 2s;">
+        <i class="fas fa-code"></i>
+    </div>
+    <div class="floating-icon" style="top: 80%; left: 80%; animation-delay: 3s;">
+        <i class="fas fa-robot"></i>
+    </div>
+    
+    <!-- 3D Cube -->
+    <div class="cube-container" style="top: 50%; left: 10%;">
+        <div class="cube">
+            <div class="face front"><i class="fab fa-dart"></i></div>
+            <div class="face back"><i class="fab fa-android"></i></div>
+            <div class="face right"><i class="fab fa-apple"></i></div>
+            <div class="face left"><i class="fab fa-js"></i></div>
+            <div class="face top"><i class="fas fa-fire"></i></div>
+            <div class="face bottom"><i class="fas fa-database"></i></div>
+        </div>
+    </div>
+    
+    <!-- Particules animées en fond -->
+    <div class="particles" id="particles-js"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-blackocier
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-code text-xl text-cyan-400"></i>
+                    <span class="text-xl font-bold neon-text">Yann Ermes K.</span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-link text-white">Accueil</a>
+                    <a href="#about" class="nav-link text-gray-400 hover:text-white">À propos</a>
+                    <a href="#projects" class="nav-link text-gray-400 hover:text-white">Projets</a>
+                    <a href="#skills" class="nav-link text-gray-400 hover:text-white">Compétences</a>
+                    <a href="#contact" class="nav-link text-gray-400 hover:text-white">Contact</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <a href="#" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-md font-medium hover:opacity-90 transition">
+                        Télécharger CV
+                    </a>
+                    <button id="mobile-menu-button" class="md:hidden text-gray-400 hover:text-white focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Menu mobile -->
+        <div id="mobile-menu" class="hidden md:hidden bg-black bg-opacity-90 px-6 py-4">
+            <div class="flex flex-col space-y-4">
+                <a href="#home" class="text-white">Accueil</a>
+                <a href="#about" class="text-gray-400 hover:text-white">À propos</a>
+                <a href="#projects" class="text-gray-400 hover:text-white">Projets</a>
+                <a href="#skills" class="text-gray-400 hover:text-white">Compétences</a>
+                <a href="#contact" class="text-gray-400 hover:text-white">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Section Accueil -->
+    <section id="home" class="min-h-screen flex items-center pt-20">
+        <div class="max-w-7xl mx-auto px-6 py-16 md:py-24">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-12 md:mb-0 fade-in">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                        <span class="gradient-text">Développeur</span><br>
+                        <span class="text-white">Flutter</span>
+                    </h1>
+                    <p class="text-xl text-gray-300 mb-8 max-w-lg">
+                        Je crée des applications mobiles élégantes et performantes avec Flutter, 
+                        en combinant design moderne et technologies innovantes.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#projects" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-md font-medium hover:opacity-90 transition">
+                            Voir mes projets
+                        </a>
+                        <a href="#contact" class="px-6 py-3 border border-cyan-400 text-cyan-400 rounded-md font-medium hover:bg-cyan-400 hover:bg-opacity-10 transition">
+                            Me contacter
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 flex justify-center fade-in" style="animation-delay: 0.2s;">
+                    <div class="relative">
+                        <div class="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden avatar-glow">
+                            <img src="https://fe-store.pro//mes_portfolio/yann/yann.jpg" 
+                                 alt="Yann Ermes K." 
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute -bottom-6 -right-6 bg-gray-900 px-4 py-2 rounded-full neon-border">
+                            <span class="text-sm font-medium text-cyan-400">Disponible</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section À propos -->
+    <section id="about" class="py-20 bg-black bg-opacity-50 relative overflow-hidden">
+        <div class="cube-container" style="top: 20%; left: 80%;">
+            <div class="cube">
+                <div class="face front"><i class="fab fa-github"></i></div>
+                <div class="face back"><i class="fab fa-linkedin"></i></div>
+                <div class="face right"><i class="fab fa-twitter"></i></div>
+                <div class="face left"><i class="fab fa-medium"></i></div>
+                <div class="face top"><i class="fas fa-share-alt"></i></div>
+                <div class="face bottom"><i class="fas fa-hashtag"></i></div>
+            </div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    <span class="gradient-text">À propos</span> <span class="text-white">de moi</span>
+                </h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-cyan-500 to-purple-600 mx-auto"></div>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center fade-in">
+                <div class="md:w-1/2 mb-12 md:mb-0 md:pr-12">
+                    <h3 class="text-2xl font-bold text-white mb-6">Passionné par les interfaces innovantes</h3>
+                    <p class="text-gray-300 mb-6">
+                        Développeur mobile spécialisé en Flutter avec une formation en électromécanique, 
+                        je combine ma passion pour la technologie et le design pour créer des applications 
+                        qui allient performance et esthétique.
+                    </p>
+                    <p class="text-gray-300 mb-6">
+                        Mon parcours atypique me permet d'aborder les projets avec une double compétence : 
+                        la rigueur technique et la créativité visuelle. Je suis particulièrement intéressé 
+                        par les projets IoT et les systèmes automatisés.
+                    </p>
+                    <p class="text-gray-300 mb-6">
+                        <strong>Langues parlées :</strong> Français (natif), Anglais (courant)
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="flex items-center text-cyan-400 hover:text-cyan-300">
+                            <i class="fab fa-github mr-2"></i> GitHub
+                        </a>
+                        <a href="#" class="flex items-center text-cyan-400 hover:text-cyan-300">
+                            <i class="fab fa-linkedin mr-2"></i> LinkedIn
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 grid grid-cols-2 gap-4">
+                    <div class="neon-card p-6 rounded-xl">
+                        <div class="text-cyan-400 text-3xl mb-4">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2">+30 Apps</h4>
+                        <p class="text-gray-400">Applications développées</p>
+                    </div>
+                    
+                    <div class="neon-card p-6 rounded-xl">
+                        <div class="text-purple-400 text-3xl mb-4">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2">IoT Expert</h4>
+                        <p class="text-gray-400">Spécialisation en automatisation</p>
+                    </div>
+                    
+                    <div class="neon-card p-6 rounded-xl">
+                        <div class="text-cyan-400 text-3xl mb-4">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2">Clean Code</h4>
+                        <p class="text-gray-400">Architecture modulaire et maintenable</p>
+                    </div>
+                    
+                    <div class="neon-card p-6 rounded-xl">
+                        <div class="text-purple-400 text-3xl mb-4">
+                            <i class="fas fa-paint-brush"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2">UI/UX</h4>
+                        <p class="text-gray-400">Design d'interface intuitif</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Projets -->
+   <!-- Section Projets -->
+<section id="projects" class="py-20 relative overflow-hidden">
+    <div class="cube-container" style="top: 30%; left: 85%;">
+        <div class="cube">
+            <div class="face front"><i class="fas fa-home"></i></div>
+            <div class="face back"><i class="fas fa-heartbeat"></i></div>
+            <div class="face right"><i class="fas fa-chart-line"></i></div>
+            <div class="face left"><i class="fas fa-shopping-cart"></i></div>
+            <div class="face top"><i class="fas fa-map-marked-alt"></i></div>
+            <div class="face bottom"><i class="fas fa-gamepad"></i></div>
+        </div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <div class="text-center mb-16 fade-in">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                Mes <span class="gradient-text">projets</span>
+            </h2>
+            <div class="w-20 h-1 bg-gradient-to-r from-cyan-500 to-purple-600 mx-auto"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Projet 1 : Smart Home Control -->
+            <div class="neon-card rounded-xl overflow-hidden fade-in project-card" style="animation-delay: 0.1s;" 
+                 data-title="Smart Home Control" 
+                 data-image="https://images.unsplash.com/photo-1555774698-0f77e9f32f72?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 data-description="Une application mobile avancée pour contrôler des appareils domestiques intelligents. Intègre des fonctionnalités IoT avec MQTT pour une communication en temps réel et une reconnaissance vocale pour une interaction utilisateur intuitive." 
+                 data-technologies="Flutter, Firebase, Speech-to-Text, MQTT">
+                <div class="h-48 bg-gradient-to-br from-cyan-900 to-purple-900 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1555774698-0f77e9f32f72?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="Projet IoT" 
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-white">Smart Home Control</h3>
+                        <span class="text-xs px-2 py-1 bg-cyan-900 bg-opacity-50 text-cyan-400 rounded">Flutter</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Application de contrôle domotique avec intégration IoT et reconnaissance vocale.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Firebase</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Speech-to-Text</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">MQTT</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projet 2 : FitTrack Pro -->
+            <div class="neon-card rounded-xl overflow-hidden fade-in project-card" style="animation-delay: 0.2s;" 
+                 data-title="FitTrack Pro" 
+                 data-image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 data-description="Une application de suivi fitness avec un tableau de bord personnalisé, des analyses détaillées des performances, et une intégration avec des APIs de santé pour synchroniser les données des appareils portables." 
+                 data-technologies="Flutter, Firestore, BLoC, Health API">
+                <div class="h-48 bg-gradient-to-br from-cyan-900 to-purple-900 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="Projet Fitness" 
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-white">FitTrack Pro</h3>
+                        <span class="text-xs px-2 py-1 bg-cyan-900 bg-opacity-50 text-cyan-400 rounded">Flutter</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Application de suivi fitness avec analyse de données et tableau de bord personnalisé.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Firestore</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">BLoC</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Health API</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projet 3 : Finance Dashboard -->
+            <div class="neon-card rounded-xl overflow-hidden fade-in project-card" style="animation-delay: 0.3s;" 
+                 data-title="Finance Dashboard" 
+                 data-image="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 data-description="Un tableau de bord financier interactif avec des visualisations de données en temps réel et des prédictions basées sur l'IA, utilisant TensorFlow Lite pour l'analyse locale et GraphQL pour les requêtes serveur." 
+                 data-technologies="Flutter, Firebase, TensorFlow Lite, GraphQL">
+                <div class="h-48 bg-gradient-to-br from-cyan-900 to-purple-900 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="Projet Finance" 
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-white">Finance Dashboard</h3>
+                        <span class="text-xs px-2 py-1 bg-cyan-900 bg-opacity-50 text-cyan-400 rounded">Flutter</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Tableau de bord financier avec visualisation de données et prédictions basées sur l'IA.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Firebase</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">TensorFlow Lite</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">GraphQL</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projet 4 : Fitness and Gym Tracker -->
+            <div class="neon-card rounded-xl overflow-hidden fade-in project-card" style="animation-delay: 0.4s;" 
+                 data-title="Fitness and Gym Tracker" 
+                 data-image="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 data-description="Une application mobile pour le suivi des entraînements en salle de sport, avec une interface utilisateur moderne et une base de données locale SQLite pour stocker les progrès des utilisateurs hors ligne." 
+                 data-technologies="Flutter, SQLite, Provider, UI/UX">
+                <div class="h-48 bg-gradient-to-br from-cyan-900 to-purple-900 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="Fitness Tracker" 
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-white">Fitness and Gym Tracker</h3>
+                        <span class="text-xs px-2 py-1 bg-cyan-900 bg-opacity-50 text-cyan-400 rounded">Flutter</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Application mobile avec une interface utilisateur complète pour le suivi des entraînements en salle de sport, utilisant une base de données locale.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">SQLite</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Provider</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">UI/UX</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projet 5 : Smart ESP -->
+            <div class="neon-card rounded-xl overflow-hidden fade-in project-card" style="animation-delay: 0.5s;" 
+                 data-title="Smart ESP" 
+                 data-image="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 data-description="Une solution mobile IoT pour contrôler des microcontrôleurs ESP (comme ESP32) via WebSocket pour une communication en temps réel et des requêtes HTTP pour des actions spécifiques, idéale pour l'automatisation." 
+                 data-technologies="Flutter, WebSocket, HTTP, ESP32">
+                <div class="h-48 bg-gradient-to-br from-cyan-900 to-purple-900 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="Smart ESP" 
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-white">Smart ESP</h3>
+                        <span class="text-xs px-2 py-1 bg-cyan-900 bg-opacity-50 text-cyan-400 rounded">Flutter</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Solution mobile IoT pour contrôler tout type de dispositifs ESP via WebSocket et requêtes HTTP.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">WebSocket</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">HTTP</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">ESP32</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projet 6 : Réseau Malgache Maroc -->
+            <div class="neon-card rounded-xl overflow-hidden fade-in project-card" style="animation-delay: 0.6s;" 
+                 data-title="Réseau Malgache Maroc" 
+                 data-image="https://images.unsplash.com/photo-1516321310762-479437144403?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                 data-description="Une application fullstack pour connecter la communauté malgache au Maroc, offrant des fonctionnalités de messagerie, d'événements communautaires, et de partage de ressources, avec un backend robuste." 
+                 data-technologies="Flutter, Firebase, Node.js, MongoDB">
+                <div class="h-48 bg-gradient-to-br from-cyan-900 to-purple-900 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1516321310762-479437144403?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="Réseau Malgache Maroc" 
+                         class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold text-white">Réseau Malgache Maroc</h3>
+                        <span class="text-xs px-2 py-1 bg-cyan-900 bg-opacity-50 text-cyan-400 rounded">Flutter</span>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Application fullstack de connexion et d'échange pour la communauté malgache au Maroc.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Firebase</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">Node.js</span>
+                        <span class="text-xs px-2 py-1 bg-gray-800 rounded">MongoDB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteneur du Pop-up -->
+        <div id="project-popup" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+            <div class="neon-card bg-black bg-opacity-90 p-8 rounded-xl max-w-3xl w-full mx-4 relative max-h-[90vh] overflow-y-auto">
+                <button id="close-popup" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+                <img id="popup-image" src="" alt="Projet" class="w-full h-64 object-cover rounded-lg mb-6">
+                <h3 id="popup-title" class="text-2xl font-bold text-white mb-4"></h3>
+                <p id="popup-description" class="text-gray-300 mb-6"></p>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <span id="popup-technologies" class="text-xs px-2 py-1 bg-gray-800 rounded"></span>
+                </div>
+                <a href="#" id="popup-link" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-md font-medium hover:opacity-90 transition">
+                    Voir le projet
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+        
+        <div class="text-center mt-12 fade-in" style="animation-delay: 0.7s;">
+            <a href="#" class="inline-flex items-center px-6 py-3 border border-cyan-400 text-cyan-400 rounded-md font-medium hover:bg-cyan-400 hover:bg-opacity-10 transition">
+                Voir tous les projets
+                <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+    <!-- Section Compétences -->
+    <section id="skills" class="py-20 bg-black bg-opacity-50 relative overflow-hidden">
+        <div class="cube-container" style="top: 20%; left: 15%;">
+            <div class="cube">
+                <div class="face front"><i class="fab fa-js"></i></div>
+                <div class="face back"><i class="fab fa-python"></i></div>
+                <div class="face right"><i class="fab fa-java"></i></div>
+                <div class="face left"><i class="fab fa-swift"></i></div>
+                <div class="face top"><i class="fab fa-php"></i></div>
+                <div class="face bottom"><i class="fab fa-rust"></i></div>
+            </div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    Mes <span class="gradient-text">compétences</span>
+                </h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-cyan-500 to-purple-600 mx-auto"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div class="fade-in">
+                    <h3 class="text-2xl font-bold text-white mb-6">Technologies principales</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-medium text-gray-300">Flutter</span>
+                                <span class="text-cyan-400">95%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-medium text-gray-300">Dart</span>
+                                <span class="text-cyan-400">90%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-medium text-gray-300">Firebase</span>
+                                <span class="text-cyan-400">85%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="font-medium text-gray-300">Prototypage IoT</span>
+                                <span class="text-cyan-400">80%</span>
+                            </div>
+                            <div class="skill-bar">
+                                <div class="skill-progress" style="width: 80%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="fade-in" style="animation-delay: 0.2s;">
+                    <h3 class="text-2xl font-bold text-white mb-6">Autres compétences</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400 mr-3">
+                                <i class="fas fa-microphone-alt"></i>
+                            </div>
+                            <span class="font-medium">Speech-to-Text</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-purple-900 bg-opacity-50 flex items-center justify-center text-purple-400 mr-3">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <span class="font-medium">Automatisation</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400 mr-3">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <span class="font-medium">API REST</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-purple-900 bg-opacity-50 flex items-center justify-center text-purple-400 mr-3">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <span class="font-medium">SQL/NoSQL</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400 mr-3">
+                                <i class="fab fa-figma"></i>
+                            </div>
+                            <span class="font-medium">UI/UX Design</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-purple-900 bg-opacity-50 flex items-center justify-center text-purple-400 mr-3">
+                                <i class="fas fa-code-branch"></i>
+                            </div>
+                            <span class="font-medium">Git</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400 mr-3">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <span class="font-medium">Intégration d'API</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-purple-900 bg-opacity-50 flex items-center justify-center text-purple-400 mr-3">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <span class="font-medium">PHP/MySQL</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400 mr-3">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <span class="font-medium">Intégration d'IA Mobile</span>
+                        </div>
+                        
+                        <div class="neon-card p-4 rounded-lg flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-purple-900 bg-opacity-50 flex items-center justify-center text-purple-400 mr-3">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <span class="font-medium">Mentorat Mobile Fullstack</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Contact -->
+    <section id="contact" class="py-20 relative">
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-cyan-900 to-purple-900 opacity-10"></div>
+            <div class="absolute top-0 left-0 w-full h-full" style="background: radial-gradient(circle at 30% 50%, rgba(0, 242, 255, 0.1) 0%, transparent 50%);"></div>
+            <div class="absolute bottom-0 right-0 w-full h-full" style="background: radial-gradient(circle at 70% 50%, rgba(180, 0, 255, 0.1) 0%, transparent 50%);"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    <span class="gradient-text">Contactez</span>-moi
+                </h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-cyan-500 to-purple-600 mx-auto"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="fade-in">
+                    <h3 class="text-2xl font-bold text-white mb-6">Travaillons ensemble</h3>
+                    <p class="text-gray-300 mb-8">
+                        Vous avez un projet en tête ou souhaitez discuter d'une opportunité ? 
+                        Envoyez-moi un message et je vous répondrai dans les plus brefs délais.
+                    </p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-white">Email</h4>
+                                <p class="text-gray-400">contact@yannermesk.example</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full bg-purple-900 bg-opacity-50 flex items-center justify-center text-purple-400">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-white">Localisation</h4>
+                                <p class="text-gray-400">Paris, France</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-medium text-white">Réseaux</h4>
+                                <div class="flex space-x-4 mt-2">
+                                    <a href="#" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition">
+                                        <i class="fab fa-github"></i>
+                                    </a>
+                                    <a href="#" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition">
+                                        <i class="fab fa-linkedin-in"></i>
+                                    </a>
+                                    <a href="#" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition">
+                                        <i class="fab fa-twitter"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="fade-in" style="animation-delay: 0.2s;">
+                    <form class="neon-card p-8 rounded-xl">
+                        <div class="mb-6">
+                            <label for="name" class="block text-sm font-medium text-gray-300 mb-2">Votre nom</label>
+                            <input type="text" id="name" class="w-full px-4 py-3 neon-input rounded-md text-white focus:outline-none">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Votre email</label>
+                            <input type="email" id="email" class="w-full px-4 py-3 neon-input rounded-md text-white focus:outline-none">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="subject" class="block text-sm font-medium text-gray-300 mb-2">Sujet</label>
+                            <input type="text" id="subject" class="w-full px-4 py-3 neon-input rounded-md text-white focus:outline-none">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="message" class="block text-sm font-medium text-gray-300 mb-2">Message</label>
+                            <textarea id="message" rows="4" class="w-full px-4 py-3 neon-input rounded-md text-white focus:outline-none"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-md font-medium hover:opacity-90 transition">
+                            Envoyer le message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Blog -->
+    <section class="py-20 bg-black bg-opacity-50 relative overflow-hidden">
+        <div class="cube-container" style="top: 70%; left: 85%;">
+            <div class="cube">
+                <div class="face front"><i class="fas fa-pen-fancy"></i></div>
+                <div class="face back"><i class="fas fa-book"></i></div>
+                <div class="face right"><i class="fas fa-newspaper"></i></div>
+                <div class="face left"><i class="fas fa-blog"></i></div>
+                <div class="face top"><i class="fas fa-feather-alt"></i></div>
+                <div class="face bottom"><i class="fas fa-quote-right"></i></div>
+            </div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">
+                    Mes <span class="gradient-text">réflexions</span>
+                </h2>
+                <div class="w-20 h-1 bg-gradient-to-r from-cyan-500 to-purple-600 mx-auto"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="neon-card p-6 rounded-xl fade-in">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-cyan-900 bg-opacity-50 flex items-center justify-center text-cyan-400 mr-4">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <span class="text-sm text-gray-400">15 Mars 2023</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">L'avenir du développement cross-platform</h3>
+                    <p class="text-gray-400 mb-4">
+                        Analyse des tendances actuelles et futures dans le développement d'applications multiplateformes avec Flutter.
+                    </p>
+                    <a href="#" class="inline-flex items-center text-cyan-400 hover:text-cyan-300">
+                        Lire l'article
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <div class="neon-card p-6 rounded-xl fade-in" style="animation-delay: 0.2s;">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-purple-900 bg-opacity-50 flex items-center justify-center text-purple-400 mr-4">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <span class="text-sm text-gray-400">2 Février 2023</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Intégrer Smart ESP avec Flutter via WebSocket</h3>
+                    <p class="text-gray-400 mb-4">
+                        Guide pratique pour connecter votre application Flutter à la solution SaaS Smart ESP en utilisant WebSocket et requêtes HTTP pour contrôler des dispositifs ESP.
+                    </p>
+                    <a href="#" class="inline-flex items-center text-cyan-400 hover:text-cyan-300">
+                        Lire l'article
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12 fade-in" style="animation-delay: 0.3s;">
+                <a href="#" class="inline-flex items-center px-6 py-3 border border-cyan-400 text-cyan-400 rounded-md font-medium hover:bg-cyan-400 hover:bg-opacity-10 transition">
+                    Voir tous les articles
+                    <i class="fas fa-arrow-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 bg-black bg-opacity-90">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-2 mb-6 md:mb-0">
+                    <i class="fas fa-code text-xl text-cyan-400"></i>
+                    <span class="text-xl font-bold neon-text">Yann Ermes K.</span>
+                </div>
+                
+                <div class="flex space-x-6 mb-6 md:mb-0">
+                    <a href="#home" class="text-gray-400 hover:text-white">Accueil</a>
+                    <a href="#about" class="text-gray-400 hover:text-white">À propos</a>
+                    <a href="#projects" class="text-gray-400 hover:text-white">Projets</a>
+                    <a href="#contact" class="text-gray-400 hover:text-white">Contact</a>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-300 hover:text-cyan-400 transition">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-500 text-sm">
+                <p>© 2023 Yann Ermes K. - Développeur Flutter. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Menu mobile
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Animation des éléments au scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.fade-in');
+            const windowHeight = window.innerHeight;
+            
+            elements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementPosition < windowHeight - elementVisible) {
+                    element.classList.add('visible');
+                }
+            });
+        };
+        
+        // Initialisation des particules
+        const initParticles = () => {
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": {
+                        "value": 80,
+                        "density": {
+                            "enable": true,
+                            "value_area": 800
+                        }
+                    },
+                    "color": {
+                        "value": ["#00f2ff", "#b400ff"]
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        },
+                        "polygon": {
+                            "nb_sides": 5
+                        }
+                    },
+                    "opacity": {
+                        "value": 0.3,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 1,
+                            "opacity_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 3,
+                        "random": true,
+                        "anim": {
+                            "enable": true,
+                            "speed": 2,
+                            "size_min": 0.1,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 150,
+                        "color": "#555555",
+                        "opacity": 0.2,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 1,
+                        "direction": "none",
+                        "random": true,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false,
+                        "attract": {
+                            "enable": false,
+                            "rotateX": 600,
+                            "rotateY": 1200
+                        }
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": true,
+                            "mode": "grab"
+                        },
+                        "onclick": {
+                            "enable": true,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 140,
+                            "line_linked": {
+                                "opacity": 0.5
+                            }
+                        },
+                        "bubble": {
+                            "distance": 400,
+                            "size": 40,
+                            "duration": 2,
+                            "opacity": 8,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 200,
+                            "duration": 0.4
+                        },
+                        "push": {
+                            "particles_nb": 4
+                        },
+                        "remove": {
+                            "particles_nb": 2
+                        }
+                    }
+                },
+                "retina_detect": true
+            });
+        };
+        
+        // Smooth scrolling pour les liens
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+                
+                // Fermer le menu mobile si ouvert
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
+        // 3D Phone Animation
+        const init3DPhone = () => {
+            const container = document.getElementById('floatingPhone');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            renderer.setSize(300, 300);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            // Phone geometry
+            const geometry = new THREE.BoxGeometry(3, 6, 0.3);
+            const material = new THREE.MeshPhongMaterial({
+                color: 0x333333,
+                specular: 0x111111,
+                shininess: 30,
+                transparent: true,
+                opacity: 0.9
+            });
+            
+            const phone = new THREE.Mesh(geometry, material);
+            scene.add(phone);
+            
+            // Screen
+            const screenGeometry = new THREE.PlaneGeometry(2.8, 5.8);
+            const screenMaterial = new THREE.MeshBasicMaterial({
+                map: new THREE.TextureLoader().load('https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'),
+                side: THREE.DoubleSide
+            });
+            
+            const screen = new THREE.Mesh(screenGeometry, screenMaterial);
+            screen.position.z = 0.16;
+            phone.add(screen);
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            const pointLight = new THREE.PointLight(0x00f2ff, 1, 10);
+            pointLight.position.set(2, 2, 2);
+            scene.add(pointLight);
+            
+            camera.position.z = 8;
+            
+            // Animation
+            const animate = () => {
+                requestAnimationFrame(animate);
+                
+                phone.rotation.x += 0.005;
+                phone.rotation.y += 0.01;
+                
+                renderer.render(scene, camera);
+            };
+            
+            animate();
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = 1;
+                camera.updateProjectionMatrix();
+                renderer.setSize(300, 300);
+            });
+        };
+        
+        // 3D Background Elements
+        const init3DBackground = () => {
+            const container = document.getElementById('threeDContainer');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            // Create floating elements
+            const elements = [];
+            const colors = [0x00f2ff, 0xb400ff, 0xffffff, 0x00ff9d];
+            const shapes = ['box', 'sphere', 'torus', 'cone'];
+            
+            for (let i = 0; i < 15; i++) {
+                let geometry;
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                
+                switch(shape) {
+                    case 'box':
+                        geometry = new THREE.BoxGeometry(1, 1, 1);
+                        break;
+                    case 'sphere':
+                        geometry = new THREE.SphereGeometry(0.5, 16, 16);
+                        break;
+                    case 'torus':
+                        geometry = new THREE.TorusGeometry(0.5, 0.2, 16, 32);
+                        break;
+                    case 'cone':
+                        geometry = new THREE.ConeGeometry(0.5, 1, 32);
+                        break;
+                }
+                
+                const material = new THREE.MeshPhongMaterial({
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    transparent: true,
+                    opacity: 0.6,
+                    specular: 0x111111,
+                    shininess: 30
+                });
+                
+                const element = new THREE.Mesh(geometry, material);
+                
+                // Random position
+                element.position.x = (Math.random() - 0.5) * 20;
+                element.position.y = (Math.random() - 0.5) * 20;
+                element.position.z = (Math.random() - 0.5) * 20;
+                
+                // Random rotation
+                element.rotation.x = Math.random() * Math.PI;
+                element.rotation.y = Math.random() * Math.PI;
+                
+                // Random scale
+                const scale = Math.random() * 0.5 + 0.5;
+                element.scale.set(scale, scale, scale);
+                
+                // Store animation data
+                elements.push({
+                    mesh: element,
+                    speed: {
+                        x: Math.random() * 0.02 - 0.01,
+                        y: Math.random() * 0.02 - 0.01,
+                        z: Math.random() * 0.02 - 0.01
+                    },
+                    rotation: {
+                        x: Math.random() * 0.02 - 0.01,
+                        y: Math.random() * 0.02 - 0.01,
+                        z: Math.random() * 0.02 - 0.01
+                    }
+                });
+                
+                scene.add(element);
+            }
+            
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0x00f2ff, 0.3);
+            directionalLight1.position.set(1, 1, 1);
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xb400ff, 0.3);
+            directionalLight2.position.set(-1, -1, -1);
+            scene.add(directionalLight2);
+            
+            camera.position.z = 15;
+            
+            // Animation
+            const animate = () => {
+                requestAnimationFrame(animate);
+                
+                // Animate elements
+                elements.forEach(element => {
+                    element.mesh.position.x += element.speed.x;
+                    element.mesh.position.y += element.speed.y;
+                    element.mesh.position.z += element.speed.z;
+                    
+                    element.mesh.rotation.x += element.rotation.x;
+                    element.mesh.rotation.y += element.rotation.y;
+                    element.mesh.rotation.z += element.rotation.z;
+                    
+                    // Bounce off imaginary walls
+                    if (Math.abs(element.mesh.position.x) > 15) element.speed.x *= -1;
+                    if (Math.abs(element.mesh.position.y) > 15) element.speed.y *= -1;
+                    if (Math.abs(element.mesh.position.z) > 15) element.speed.z *= -1;
+                });
+                
+                renderer.render(scene, camera);
+            };
+            
+            animate();
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+        
+        // Initialisation
+        window.addEventListener('load', () => {
+            animateOnScroll();
+            initParticles();
+            init3DPhone();
+            init3DBackground();
+        });
+        
+        window.addEventListener('scroll', animateOnScroll);
+    </script>
+</body>
+</html>
